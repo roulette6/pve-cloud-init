@@ -6,8 +6,9 @@ users:
   primary_group: todo_user
   groups: todo_group
   lock_passwd: false
-  passwd: changeme
-  todo_group: "ALL=(ALL) NOPASSWD:ALL"
+  # password is changeme
+  passwd: $6$S3MA9YPVJas1jJ/c$rldZTQY.d1/rRvLtokMoQH7GyhMMGIUyDO4Enfp.tj9kcrxkSCddNd8cnzUXqgSVUpGdxITGSTzmwY2WgfMJ7/
+  sudo: "ALL=(ALL) NOPASSWD:ALL"
   shell: /bin/bash
   ssh_authorized_keys:
     - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN2UuR7ynD9+1lgQIkkWeYKdszlifrnerLC7bTIpEZro
