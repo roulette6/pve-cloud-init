@@ -1,0 +1,40 @@
+#cloud-config
+hostname: todo_hostname
+users:
+- name: todo_user
+  gecos: todo_gecos
+  primary_group: todo_user
+  groups: todo_group
+  lock_passwd: false
+  passwd: changeme
+  todo_group: "ALL=(ALL) NOPASSWD:ALL"
+  shell: /bin/bash
+  ssh_authorized_keys:
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN2UuR7ynD9+1lgQIkkWeYKdszlifrnerLC7bTIpEZro
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILt7jDru/vge2Ya47nGp69OyJ10T3KEx2ukGrj/M6hMi
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsb6haNwmkC5mE+Bs3xDewcGv3jiysruEFJWDNWkKtc
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFsDzbTG1lav30UUInt9fW9/CIBGzodrKzP29ET5CJaK
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOOWBiuNbvSPbDEia4DJLgOt3Iwqvqj/OuEutTQO/hiN
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe0Jot8YOAge5u8yhCrW9y8BZx3/9Iy8FDrV5NTHOu1
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTbS8MnRihYYduAfc79FMsNMjnYUTbb3xzm+8es6uIK
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUyrWL8KBrk7u9nL1jEkhwuS0HgQ4MoUrW3dF1rOIR7
+final_message: "==== cloud-init is grrrrrreat! ===="
+package_update: true
+package_upgrade: true
+packages:
+  - cifs-utils
+  - curl
+  - eza
+  - git
+  - gpg
+  - nfs-common
+  - tmux
+  - wget
+  - zsh
+runcmd:
+  - for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do apt-get remove -y $pkg; done
+  - wget -qO- https://get.docker.com/ | sh
+  - usermod -aG docker josue
+  - NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  - reboot
+
