@@ -54,6 +54,7 @@ if [ ! -f "$cloud_img_path" ]; then
         echo ""
     else
         echo -e "Error: Failed to download file from $download_url"
+        [ -f "$cloud_img_path" ] && rm -f "$cloud_img_path"
         exit 1
     fi
 fi
@@ -148,8 +149,6 @@ genisoimage \
 
 spin $!
 
-echo -e "${GN}/var/lib/vz/template/iso/$vm_id.iso${NC} created successfully.\n"
-
 # Configure the VM hardware
 qm importdisk $vm_id $cloud_img_path $vm_storage 1> /dev/null &
 spin $!
@@ -175,7 +174,7 @@ fi
 qm start $vm_id
 
 echo -e "VM created successfully and started with the following parameters:"
-echo -e "  ID: ${GN}${vm_id}${NC}\n  Name: ${GN}${vm_name}${NC}\n  RAM: ${GN}$vm_memory MB${NC}\n  CPU type: ${GN}${cpu_type}${NC}\n  Primary disk size: ${GN}${vm_disk_size}B${NC}"
+echo -e "  ID: ${GN}${vm_id}${NC}\n  Name: ${GN}${vm_name}${NC}\n  RAM: ${GN}${vm_memory}MB${NC}\n  CPU type: ${GN}${cpu_type}${NC}\n  Primary disk size: ${GN}${vm_disk_size}B${NC}"
 if [[ -n "$second_disk_size" ]]; then
     echo -e "  Secondary disk size: ${GN}${second_disk_size}GB${NC}"
 fi
