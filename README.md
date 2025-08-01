@@ -21,11 +21,11 @@ This repo contains scripts to create VMs based on cloud-init templates. It does 
     - `runcmd`
 3.  Modify **templ-network-config**
     - `via`
-    - `nameservers` \> `search`: Change if you use internal DNS
     - `nameservers` \> `addresses`: Change to desired DNS servers
+    - `nameservers` \> `search`: Add if you use internal DNS
 4.  Execute the shell script based on the VM image you want. Answer a few questions, and wait for the VM to be created.
 
-### Example usage
+## Example usage
 
 Download git repo
 
@@ -36,7 +36,58 @@ cd /var/lib/vz/template/iso/pve-cloud-init
 chmod +x *.sh
 ```
 
-Modify YAML as indicated above (not shown here).
+## Modify cloud-init files
+
+This only needs to be done once.
+
+### templ-user-data
+
+Save your authorized keys to a temporary file
+
+``` shell
+cat << EOF > ./authorized_keys.txt
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILIMt9pihqR99MAoguNURzuUn2EHY6TQ8tlq2XJDwDdC
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILt7jDru/vge2Ya47nGp69OyJ10T3KEx2ukGrj/M6hMi
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFsDzbTG1lav30UUInt9fW9/CIBGzodrKzP29ET5CJaK
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOOWBiuNbvSPbDEia4DJLgOt3Iwqvqj/OuEutTQO/hiN
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUyrWL8KBrk7u9nL1jEkhwuS0HgQ4MoUrW3dF1rOIR7
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe0Jot8YOAge5u8yhCrW9y8BZx3/9Iy8FDrV5NTHOu1
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTbS8MnRihYYduAfc79FMsNMjnYUTbb3xzm+8es6uIK
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINyLMd/Anlet3NNgC+CROaASE4qqXjAOegjmFWXrlciR
+EOF
+```
+
+Delete any potential ssh key entries that might already exist and insert the ones from the file after the `ssh_authorized_keys` section.
+
+``` shell
+sed -i '/- ssh-ed25519/d' templ-user-data
+sed -i '/ssh_authorized_keys/r ./authorized_keys.txt' templ-user-data
+```
+
+### templ-network-config
+
+Update the default gateway
+
+``` shell
+sed -i "s|via: TODO|via: 192.168.128.1|" templ-network-config
+```
+
+Modify the DNS servers as desired
+
+``` shell
+sed -i "/1.1.1.1/d" templ-network-config
+sed -i "s|8.8.8.8|192.168.129.16|" templ-network-config
+```
+
+Add your own DNS search zones if you’d like
+
+``` shell
+cat << EOF >> templ-network-config
+        search:
+          - example.com
+          - home.example.com
+EOF
+```
 
 Create a VM
 
@@ -46,8 +97,7 @@ Create a VM
 
 ## A note for clusters with HA
 
-> [!NOTE]
-> If you place your VM in local storage capable of replication and HA, such as a ZFS pool, you’ll want to do one of the following.
+> [!NOTE] If you place your VM in local storage capable of replication and HA, such as a ZFS pool, you’ll want to do one of the following.
 
 ### Transfer the cloud-init ISO to the other nodes
 

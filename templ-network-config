@@ -11,9 +11,6 @@ network:
           via: TODO
           metric: 1
       nameservers:
-        search:
-          - TODO_fqdn
-          - home.TODO_fqdn
         addresses:
           - 1.1.1.1
           - 8.8.8.8
