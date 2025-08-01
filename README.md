@@ -97,7 +97,8 @@ Create a VM
 
 ## A note for clusters with HA
 
-> [!NOTE] If you place your VM in local storage capable of replication and HA, such as a ZFS pool, you’ll want to do one of the following.
+> [!NOTE]
+> If you place your VM in local storage capable of replication and HA, such as a ZFS pool, you’ll want to do one of the following.
 
 ### Transfer the cloud-init ISO to the other nodes
 
