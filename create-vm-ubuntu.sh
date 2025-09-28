@@ -31,7 +31,7 @@ spin() {
     printf '\r'
 }
 
-echo -e "\nThis script will create an ${YL}Ubuntu 25.04 (Plucky)${NC} VM using a cloud image.\n"
+echo -e "\nThis script will create an ${YL}Ubuntu 24.04 (Noble)${NC} VM using a cloud image.\n"
 
 # Check if genisoimage is installed
 if ! command -v genisoimage >/dev/null 2>&1; then
@@ -40,8 +40,8 @@ if ! command -v genisoimage >/dev/null 2>&1; then
 fi
 
 # Download the cloud image if it doesn't exist.
-cloud_img_path="/var/lib/vz/template/iso/plucky-server-cloudimg-amd64.img"
-download_url="https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-amd64.img"
+cloud_img_path="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img"
+download_url="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
 
 if [ ! -f "$cloud_img_path" ]; then
     echo -e "File ${GN}${cloud_img_path}${NC} does not exist. Downloading...\n"
