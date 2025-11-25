@@ -15,12 +15,17 @@ final_message: "==== cloud-init is grrrrrreat! ===="
 package_update: true
 package_upgrade: true
 packages:
+  - apt-transport-https
+  - ca-certificates
+  - chrony
   - cifs-utils
   - curl
   - git
   - gpg
+  - nfs-common
   - tmux
   - wget
   - zsh
 runcmd:
+  - timedatectl set-timezone America/New_York
   - reboot
