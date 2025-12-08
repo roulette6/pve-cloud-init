@@ -59,8 +59,16 @@ if [ ! -f "$cloud_img_path" ]; then
     fi
 fi
 
+# Get list of storage locations that can store VM images
+locations="$(
+    pvesm status --content images \
+        | awk 'NR>1 {print $1}' \
+        | tr '\n' ' ' \
+        | sed 's/ $//; s/ /, /'
+)"
+
 # Prompt for hostname, ID, and last subnet octet
-read_colored "Storage for VM (local-lvm, pve-zpool, etc.): " vm_storage
+read_colored "Storage for VM ($locations): " vm_storage
 read_colored "VM ID: " vm_id
 read_colored "VM name: " vm_name
 read_colored "VM CPU type (default is x86-64-v3): " cpu_type
