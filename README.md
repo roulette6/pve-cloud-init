@@ -14,16 +14,16 @@ This repo contains scripts to create VMs based on cloud-init templates. It does 
 
 ## How to use
 
-1.  Clone this repo in the ISO templates directory
-2.  Modify **templ-user-data**
+1. Clone this repo in the ISO templates directory
+2. Modify **templ-user-data**
     - `ssh_authorized_keys`
     - `packages`
     - `runcmd`
-3.  Modify **templ-network-config**
+3. Modify **templ-network-config**
     - `via`
     - `nameservers` \> `addresses`: Change to desired DNS servers
     - `nameservers` \> `search`: Add if you use internal DNS
-4.  Execute the shell script based on the VM image you want. Answer a few questions, and wait for the VM to be created.
+4. Execute the shell script based on the VM image you want. Answer a few questions, and wait for the VM to be created.
 
 ## Example usage
 
@@ -89,10 +89,20 @@ cat << EOF >> templ-network-config
 EOF
 ```
 
-Create a VM
+Create a VM (You will be prompted for arguments you don't provide. Some have default values.)
 
 ``` shell
-./create-vm-ubuntu.sh
+./create-vm-ubuntu.sh \
+  --storage crucial \
+  --id 149 \
+  --name test149 \
+  --cpu-type x86-64-v3 \
+  --cpu-cores 2 \
+  --memory 6144 \
+  --disk-size 30 \
+  --ip 192.168.1.149 \
+  --user john \
+  --disk2-size 30
 ```
 
 ## A note for clusters with HA
