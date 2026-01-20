@@ -31,6 +31,83 @@ spin() {
     printf '\r'
 }
 
+select_distribution() {
+    local distro_choice
+    local use_param=false
+
+    # Check if DISTRIBUTION variable is set and valid
+    if [[ -n "$DISTRIBUTION" ]]; then
+        case "${DISTRIBUTION,,}" in
+            ubuntu) distro_choice=1; use_param=true ;;
+            debian) distro_choice=2; use_param=true ;;
+            alma) distro_choice=3; use_param=true ;;
+            centos) distro_choice=4; use_param=true ;;
+            fedora) distro_choice=5; use_param=true ;;
+            *)
+                echo -e "${YL}Warning: Invalid distribution '${DISTRIBUTION}' provided.${NC}"
+                echo -e "${YL}Valid options are: ubuntu, debian, alma, centos, fedora${NC}\n"
+                ;;
+        esac
+    fi
+
+    # Interactive prompt if DISTRIBUTION not set or invalid
+    if [[ "$use_param" == false ]]; then
+        echo -e "${BL}Select a Linux distribution:${NC}\n"
+        echo "  1) Ubuntu 24.04 LTS"
+        echo "  2) Debian 13"
+        echo "  3) Alma Linux 10"
+        echo "  4) CentOS Stream 10"
+        echo "  5) Fedora 43"
+        echo ""
+        read_colored "Enter selection (1-5): " distro_choice
+        echo ""
+    fi
+
+    # Set variables based on choice
+    case $distro_choice in
+        1)
+            DISTRO_NAME="Ubuntu 24.04 LTS"
+            IMAGE_FILENAME="/var/lib/vz/template/iso/ubuntu-2404.img"
+            DOWNLOAD_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+            DISTRO_FAMILY="debian"
+            ;;
+        2)
+            DISTRO_NAME="Debian 13"
+            IMAGE_FILENAME="/var/lib/vz/template/iso/debian-13.img"
+            DOWNLOAD_URL="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+            DISTRO_FAMILY="debian"
+            ;;
+        3)
+            DISTRO_NAME="Alma Linux 10"
+            IMAGE_FILENAME="/var/lib/vz/template/iso/almalinux-10.img"
+            DOWNLOAD_URL="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
+            DISTRO_FAMILY="rhel"
+            ;;
+        4)
+            DISTRO_NAME="CentOS Stream 10"
+            IMAGE_FILENAME="/var/lib/vz/template/iso/centos-10.img"
+            DOWNLOAD_URL="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
+            DISTRO_FAMILY="rhel"
+            ;;
+        5)
+            DISTRO_NAME="Fedora 43"
+            IMAGE_FILENAME="/var/lib/vz/template/iso/fedora-43.img"
+            DOWNLOAD_URL="https://dl.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+            DISTRO_FAMILY="rhel"
+            ;;
+        *)
+            echo -e "${YL}Invalid selection.${NC} Please run the script again and choose 1-5."
+            exit 1
+            ;;
+    esac
+
+    if [[ "$use_param" == true ]]; then
+        echo -e "Using distribution from parameter: ${GN}${DISTRO_NAME}${NC}\n"
+    else
+        echo -e "Selected: ${GN}${DISTRO_NAME}${NC}\n"
+    fi
+}
+
 show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
@@ -38,6 +115,7 @@ Usage: $0 [OPTIONS]
 This script creates an Ubuntu 24.04 (Noble) VM using a cloud image.
 
 OPTIONS:
+    --distro DISTRIBUTION          ubuntu, debian, alma, centos, fedora
     -s, --storage STORAGE          Storage location for VM
     -i, --id VM_ID                 VM ID number
     -n, --name VM_NAME             VM hostname
@@ -56,6 +134,7 @@ EXAMPLES:
 
     # Fully specified
     $0 \\
+    --distro alma \\
     --storage crucial \\
     --id 149 \\
     --name test149 \\
@@ -73,11 +152,15 @@ EXAMPLES:
 EOF
 }
 
-echo -e "\nThis script will create an ${YL}Ubuntu 24.04 (Noble)${NC} VM using a cloud image.\n"
+echo -e "\nThis script will create a ${YL}${DISTRO_NAME}${NC} VM using a cloud image.\n"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --distro)
+            DISTRIBUTION="$2"
+            shift 2
+            ;;
         -s|--storage)
             STORAGE="$2"
             shift 2
@@ -136,22 +219,22 @@ if ! command -v genisoimage >/dev/null 2>&1; then
     exit 1
 fi
 
-# Download the cloud image if it doesn't exist.
-cloud_img_path="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img"
-download_url="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+# Set distribution
+select_distribution $DISTRIBUTION
 
-if [ ! -f "$cloud_img_path" ]; then
-    echo -e "File ${GN}${cloud_img_path}${NC} does not exist. Downloading...\n"
+# Download the cloud image if it doesn't exist.
+if [ ! -f "$IMAGE_FILENAME" ]; then
+    echo -e "File ${GN}${IMAGE_FILENAME}${NC} does not exist. Downloading...\n"
 
     # Download the file
-    if wget -O "$cloud_img_path" "$download_url"; then
+    if wget -O "$IMAGE_FILENAME" "$DOWNLOAD_URL"; then
         echo -e "Image downloaded. Installing ${GN}qemu-guest-agent${NC} in the image."
-        virt-customize --install qemu-guest-agent -a $cloud_img_path &> /dev/null &
+        virt-customize --install qemu-guest-agent -a $IMAGE_FILENAME &> /dev/null &
         spin $!
         echo ""
     else
-        echo -e "Error: Failed to download file from $download_url"
-        [ -f "$cloud_img_path" ] && rm -f "$cloud_img_path"
+        echo -e "Error: Failed to download file from $DOWNLOAD_URL"
+        [ -f "$IMAGE_FILENAME" ] && rm -f "$IMAGE_FILENAME"
         exit 1
     fi
 fi
@@ -182,7 +265,7 @@ if [[ -z "$CPU_TYPE" ]]; then
 fi
 
 if [[ -z "$CPU_CORES" ]]; then
-    read_colored "VM CPU cores (default is x86-64-v3): " CPU_CORES
+    read_colored "VM CPU cores (default is 2): " CPU_CORES
 fi
 
 if [[ -z "$MEMORY" ]]; then
@@ -250,7 +333,7 @@ else
 fi
 
 echo -e "Creating the VM. Importing the main disk will take a moment.\n"
-qemu-img resize $cloud_img_path $vm_disk_size 1> /dev/null &
+qemu-img resize $IMAGE_FILENAME $vm_disk_size 1> /dev/null &
 
 spin $!
 
@@ -294,7 +377,7 @@ genisoimage \
 spin $!
 
 # Configure the VM hardware
-qm importdisk $VM_ID $cloud_img_path $STORAGE 1> /dev/null &
+qm importdisk $VM_ID $IMAGE_FILENAME $STORAGE 1> /dev/null &
 spin $!
 
 qm set $VM_ID \
@@ -335,5 +418,5 @@ else
 fi
 
 echo -e "VM created successfully and started with the following parameters:"
-echo -e "  ID: ${GN}${VM_ID}${NC}\n  Name: ${GN}${VM_NAME}${NC}\n  RAM: ${GN}${MEMORY_GB}GB${NC}\n  CPU type: ${GN}${CPU_TYPE}${NC}  cores: ${GN}${CPU_CORES}${NC}\n  Primary disk: ${GN}${vm_disk_size}B${NC}${DISK2}"
+echo -e "  Distro: ${GN}${DISTRO_NAME}${NC}\n  ID: ${GN}${VM_ID}${NC}\n  Name: ${GN}${VM_NAME}${NC}\n  RAM: ${GN}${MEMORY_GB}GB${NC}\n  CPU type: ${GN}${CPU_TYPE}${NC}  cores: ${GN}${CPU_CORES}${NC}\n  Primary disk: ${GN}${vm_disk_size}B${NC}${DISK2}"
 echo ""

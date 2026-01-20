@@ -89,10 +89,11 @@ cat << EOF >> templ-network-config
 EOF
 ```
 
-Create a VM (You will be prompted for arguments you don't provide. Some have default values.)
+Create a VM (You will be prompted for arguments you don't provide. Some have default values.). Valid distributions are: `ubuntu` (24.04 LTS), `debian` (13), `alma` (10), `centos` (Stream 10), and `fedora` (43).
 
 ``` shell
-./create-vm-ubuntu.sh \
+./create-vm.sh \
+  --distro debian \
   --storage crucial \
   --id 149 \
   --name test149 \
