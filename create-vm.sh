@@ -125,6 +125,7 @@ OPTIONS:
     -d, --disk-size DISK_SIZE      Primary disk size in GB (default: 20)
     -a, --ip IP_ADDRESS            VM IP address
     -u, --user USERNAME            Cloud-init username (also used for geckos)
+    --second-disk SECOND_DISK      Whether to include a secondn disk (yes/no)
     -2, --disk2-size DISK2_SIZE    Second disk size in GB (optional)
     -h, --help                     Show this help message
 
@@ -187,6 +188,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -d|--disk-size)
             DISK_SIZE="$2"
+            shift 2
+            ;;
+        --second-disk)
+            SECOND_DISK="$2"
             shift 2
             ;;
         -a|--ip)

@@ -106,6 +106,23 @@ Create a VM (You will be prompted for arguments you don't provide. Some have def
   --disk2-size 30
 ```
 
+Create a VM without a second disk
+
+```shell
+./create-vm.sh \
+  --distro debian \
+  --storage crucial \
+  --id 149 \
+  --name test149 \
+  --cpu-type x86-64-v3 \
+  --cpu-cores 2 \
+  --memory 6144 \
+  --disk-size 30 \
+  --ip 192.168.1.149 \
+  --user john \
+  --second-disk no
+```
+
 ## A note for clusters with HA
 
 > [!NOTE]
