@@ -5,12 +5,12 @@ network:
       match:
         macaddress: "todo_mac"
       addresses:
-        - todo_ip/23
+        - todo_ip/24
       routes:
         - to: 0.0.0.0/0
           via: TODO
           metric: 1
       nameservers:
         addresses:
-          - 1.1.1.1
+          - 192.168.2.2
           - 8.8.8.8

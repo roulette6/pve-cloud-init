@@ -20,7 +20,7 @@ This repo contains scripts to create VMs based on cloud-init templates. It does 
     - `packages`
     - `runcmd`
 3. Modify **templ-network-config**
-    - `via`
+    - `via`: Change the default gateway
     - `nameservers` \> `addresses`: Change to desired DNS servers
     - `nameservers` \> `search`: Add if you use internal DNS
 4. Execute the shell script based on the VM image you want. Answer a few questions, and wait for the VM to be created.
@@ -39,6 +39,26 @@ chmod +x *.sh
 ## Modify cloud-init files
 
 This only needs to be done once.
+
+## Change the user's password
+
+> [!NOTE]
+> You can opt to leave the default `changeme` password and change it via the VM's CLI.
+
+Create a hashed password
+
+```shell
+CINIT_PASSWD=$(openssl passwd -6 "your_password_here")
+```
+
+Replace the hashed password in *templ-user-data*. Leave the leading space to avoid matching `lock_passwd:`.
+
+```shell
+# delete comment about default password
+sed -i '/changeme/d' templ-user-data
+# replace the password hash
+sed -i "s| passwd: .*| passwd: ${CINIT_PASSWD}|" templ-user-data
+```
 
 ### templ-user-data
 
@@ -69,14 +89,16 @@ sed -i '/ssh_authorized_keys/r ./authorized_keys.txt' templ-user-data
 Update the default gateway
 
 ``` shell
-sed -i "s|via: TODO|via: 192.168.128.1|" templ-network-config
+sed -i "s|via.*|via: 192.168.3.1|" templ-network-config
 ```
 
 Modify the DNS servers as desired
 
 ``` shell
-sed -i "/1.1.1.1/d" templ-network-config
-sed -i "s|8.8.8.8|192.168.129.16|" templ-network-config
+# delete private DNS server
+sed -i "/192.168.2.2/d" templ-network-config
+# swap Google DNS for Cloudflare DNS
+sed -i "s|8.8.8.8|1.1.1.1|" templ-network-config
 ```
 
 Add your own DNS search zones if you’d like

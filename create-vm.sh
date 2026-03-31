@@ -325,10 +325,10 @@ if [[ -z "$CPU_CORES" ]]; then
     CPU_CORES="2"
 fi
 
-if [[ -z "$vm_disk_size" ]]; then
-    vm_disk_size="20G"
+if [[ -z "$DISK_SIZE" ]]; then
+    DISK_SIZE="20G"
 else
-    vm_disk_size=${vm_disk_size//[!0-9]/}G
+    DISK_SIZE=${DISK_SIZE//[!0-9]/}G
 fi
 
 if [[ "$SECOND_DISK" == "yes" && -z "$DISK2_SIZE" ]]; then
@@ -338,7 +338,7 @@ else
 fi
 
 echo -e "Creating the VM. Importing the main disk will take a moment.\n"
-qemu-img resize $IMAGE_FILENAME $vm_disk_size 1> /dev/null &
+qemu-img resize $IMAGE_FILENAME $DISK_SIZE 1> /dev/null &
 
 spin $!
 
@@ -423,5 +423,6 @@ else
 fi
 
 echo -e "VM created successfully and started with the following parameters:"
-echo -e "  Distro: ${GN}${DISTRO_NAME}${NC}\n  ID: ${GN}${VM_ID}${NC}\n  Name: ${GN}${VM_NAME}${NC}\n  RAM: ${GN}${MEMORY_GB}GB${NC}\n  CPU type: ${GN}${CPU_TYPE}${NC}  cores: ${GN}${CPU_CORES}${NC}\n  Primary disk: ${GN}${vm_disk_size}B${NC}${DISK2}"
+echo -e "  Distro: ${GN}${DISTRO_NAME}${NC}\n  ID: ${GN}${VM_ID}${NC}\n  Name: ${GN}${VM_NAME}${NC}\n  RAM: ${GN}${MEMORY_GB}GB${NC}\n  CPU type: ${GN}${CPU_TYPE}${NC}  cores: ${GN}${CPU_CORES}${NC}\n  Primary disk: ${GN}${DISK_SIZE}B${NC}${DISK2}"
 echo ""
+
