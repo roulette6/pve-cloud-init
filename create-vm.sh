@@ -20,17 +20,6 @@ read_colored() {
     echo -ne "$NC"     # Reset color
 }
 
-spin() {
-    local pid=$1
-    while kill -0 $pid 2>/dev/null; do
-        printf '\r|'; sleep 0.1
-        printf '\r/'; sleep 0.1
-        printf '\r-'; sleep 0.1
-        printf '\r\'; sleep 0.1
-    done
-    printf '\r'
-}
-
 select_distribution() {
     local distro_choice
     local use_param=false
@@ -254,7 +243,7 @@ locations="$(
 
 # Prompt for variables if they weren't set when the script was called
 if [[ -z "$STORAGE" ]]; then
-    read_colored "Storage location for VM ($locations): " STORAGE
+    read_colored "Select VM location from these options ($locations): " STORAGE
 fi
 
 if [[ -z "$VM_ID" ]]; then
@@ -338,19 +327,15 @@ else
 fi
 
 echo -e "Creating the VM. Importing the main disk will take a moment.\n"
-qemu-img resize $IMAGE_FILENAME $DISK_SIZE 1> /dev/null &
-
-spin $!
+qemu-img resize $IMAGE_FILENAME $DISK_SIZE 1> /dev/null
 
 qm create $VM_ID --name "$VM_NAME" --ostype l26 \
     --memory $MEMORY \
     --agent 1 \
-    --bios ovmf --machine q35 --efidisk0 $STORAGE:0,pre-enrolled-keys=0 \
+    --bios ovmf --machine q35 --efidisk0 ${STORAGE}:0,pre-enrolled-keys=0 \
     --cpu $CPU_TYPE --socket 1 --cores $CPU_CORES \
     --vga serial0 --serial0 socket  \
-    --net0 virtio,bridge=vmbr0 > /dev/null &
-
-spin $!
+    --net0 virtio,bridge=vmbr0 > /dev/null
 
 # Get VM MAC address for modifying cloud-init
 vm_mac=$(
