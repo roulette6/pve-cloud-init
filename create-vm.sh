@@ -42,7 +42,7 @@ select_distribution() {
     # Interactive prompt if DISTRIBUTION not set or invalid
     if [[ "$use_param" == false ]]; then
         echo -e "${BL}Select a Linux distribution:${NC}\n"
-        echo "  1) Ubuntu 24.04 LTS"
+        echo "  1) Ubuntu 26.04 LTS"
         echo "  2) Debian 13"
         echo "  3) Alma Linux 10"
         echo "  4) CentOS Stream 10"
@@ -55,9 +55,9 @@ select_distribution() {
     # Set variables based on choice
     case $distro_choice in
         1)
-            DISTRO_NAME="Ubuntu 24.04 LTS"
-            IMAGE_FILENAME="/var/lib/vz/template/iso/ubuntu-2404.img"
-            DOWNLOAD_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+            DISTRO_NAME="Ubuntu 26.04 LTS"
+            IMAGE_FILENAME="/var/lib/vz/template/iso/ubuntu-2604.img"
+            DOWNLOAD_URL="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
             DISTRO_FAMILY="debian"
             ;;
         2)
@@ -101,7 +101,7 @@ show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-This script creates an Ubuntu 24.04 (Noble) VM using a cloud image.
+This script creates an Ubuntu 26.04 (Resolute) VM using a cloud image.
 
 OPTIONS:
     --distro DISTRIBUTION          ubuntu, debian, alma, centos, fedora
