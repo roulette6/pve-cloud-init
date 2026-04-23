@@ -410,4 +410,3 @@ fi
 echo -e "VM created successfully and started with the following parameters:"
 echo -e "  Distro: ${GN}${DISTRO_NAME}${NC}\n  ID: ${GN}${VM_ID}${NC}\n  Name: ${GN}${VM_NAME}${NC}\n  RAM: ${GN}${MEMORY_GB}GB${NC}\n  CPU type: ${GN}${CPU_TYPE}${NC}  cores: ${GN}${CPU_CORES}${NC}\n  Primary disk: ${GN}${DISK_SIZE}B${NC}${DISK2}"
 echo ""
-
