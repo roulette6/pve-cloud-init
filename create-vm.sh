@@ -223,8 +223,7 @@ if [ ! -f "$IMAGE_FILENAME" ]; then
     # Download the file
     if wget -O "$IMAGE_FILENAME" "$DOWNLOAD_URL"; then
         echo -e "Image downloaded. Installing ${GN}qemu-guest-agent${NC} in the image."
-        virt-customize --install qemu-guest-agent -a $IMAGE_FILENAME &> /dev/null &
-        spin $!
+        virt-customize --install qemu-guest-agent -a $IMAGE_FILENAME &> /dev/null
         echo ""
     else
         echo -e "Error: Failed to download file from $DOWNLOAD_URL"
@@ -362,29 +361,23 @@ sed -i "s|todo_gecos|${cinit_user}|g" user-data
 genisoimage \
     -output /var/lib/vz/template/iso/$VM_ID.iso -input-charset utf-8 \
     -volid cidata -rational-rock -joliet \
-    user-data meta-data network-config &> /dev/null &
-
-spin $!
+    user-data meta-data network-config &> /dev/null
 
 # Configure the VM hardware
-qm importdisk $VM_ID $IMAGE_FILENAME $STORAGE 1> /dev/null &
-spin $!
+qm importdisk $VM_ID $IMAGE_FILENAME $STORAGE 1> /dev/null
 
 qm set $VM_ID \
     --scsihw virtio-scsi-pci \
     --virtio0 \
-    "$STORAGE:vm-$VM_ID-disk-1,discard=on" 1> /dev/null &
-spin $!
+    "$STORAGE:vm-$VM_ID-disk-1,discard=on" 1> /dev/null
 
 qm set $VM_ID \
     --boot c \
-    --bootdisk virtio0 1> /dev/null &
-spin $!
+    --bootdisk virtio0 1> /dev/null
 
 qm set $VM_ID \
     --ide2 \
-    $cd_storage:iso/$VM_ID.iso,media=cdrom 1> /dev/null &
-spin $!
+    $cd_storage:iso/$VM_ID.iso,media=cdrom 1> /dev/null
 
 qm set $VM_ID \
     --tags cloud-init 1> /dev/null
@@ -392,8 +385,7 @@ qm set $VM_ID \
 # Create secondary storage disk if requested
 if [[ -n "$DISK2_SIZE" ]]; then
     qm set $VM_ID \
-        --virtio1 $STORAGE:$DISK2_SIZE,discard=on 1> /dev/null &
-    spin $!
+        --virtio1 $STORAGE:$DISK2_SIZE,discard=on 1> /dev/null
 fi
 
 # start the VM
