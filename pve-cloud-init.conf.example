@@ -3,7 +3,7 @@
 SNIPPET_STORAGE="local"          # must have the "snippets" content type enabled
 IMAGE_DIR="/var/lib/vz/template/iso"
 BRIDGE="vmbr0"
-VLAN=""                          # VLAN tag, e.g. 3; empty = untagged
+VLAN=""                          # VLAN tag, e.g. 3; 'none' = untagged; empty = prompt (default 3)
 NAMESERVER="1.1.1.1 8.8.8.8"     # space separated
 SEARCHDOMAIN=""                   # default shown at the prompt, e.g. "example.com lab.example.com"
 TIMEZONE="America/New_York"

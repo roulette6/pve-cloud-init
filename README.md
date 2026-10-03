@@ -30,7 +30,7 @@ User, password, SSH keys and network are *not* in the templates any more; Proxmo
 
 Anything not given on the command line is prompted for, including the password (hidden, entered twice; or set `CINIT_PASSWORD`). The password is hashed (SHA-512) before it is given to Proxmox.
 
-The DNS search domains are also prompted for (default from `SEARCHDOMAIN` in the config; type `none` for none, or use `--search-domain`). If `--storage` is missing or doesn't exist, the available storages are listed and you pick one by number.
+The VLAN is prompted for too (default 3; type `none` for untagged, or use `--vlan`). The DNS search domains are also prompted for (default from `SEARCHDOMAIN` in the config; type `none` for none, or use `--search-domain`). If `--storage` is missing or doesn't exist, the available storages are listed and you pick one by number.
 
 Valid distributions: `ubuntu` (26.04 LTS), `debian` (13), `alma` (10), `centos` (Stream 10), `fedora` (43).
 
@@ -46,6 +46,7 @@ Valid distributions: `ubuntu` (26.04 LTS), `debian` (13), `alma` (10), `centos` 
   --disk-size 30 \
   --ip 192.168.1.149/24 \
   --gateway 192.168.1.1 \
+  --vlan 3 \
   --user john \
   --disk2-size 30
 ```

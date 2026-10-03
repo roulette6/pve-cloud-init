@@ -85,7 +85,7 @@ OPTIONS:
     -g, --gateway GATEWAY          Default gateway (default: x.x.x.1)
     --search-domain DOMAINS        DNS search domains, space or comma separated
     -b, --bridge BRIDGE            Network bridge (default: vmbr0)
-    -v, --vlan VLAN_ID             VLAN tag for the VM's NIC (default: untagged)
+    -v, --vlan VLAN_ID|none        VLAN tag for the VM's NIC (default: 3; 'none' = untagged)
     -u, --user USERNAME            Cloud-init username
     --second-disk yes|no           Whether to add a second disk
     -2, --disk2-size DISK2_SIZE    Second disk size in GB (implies yes)
@@ -304,10 +304,16 @@ fi
 [[ "${SEARCHDOMAIN,,}" != "none" ]] || SEARCHDOMAIN=""
 SEARCHDOMAIN="${SEARCHDOMAIN//,/ }"
 
+if [[ -z "$VLAN" ]]; then
+    read_colored "VLAN ID (default is 3; 'none' for untagged): " VLAN
+    VLAN="${VLAN:-3}"
+fi
+[[ "${VLAN,,}" != "none" ]] || VLAN=""
+
 [[ -n "$CINIT_USER" ]] || read_colored "cloud-init username (example, john): " CINIT_USER
 
 [[ -z "$DISK2_SIZE" ]] || SECOND_DISK="yes"
-[[ -n "$SECOND_DISK" ]] || read_colored "Do you want a second disk? (yes/no, default is no): " SECOND_DISK
+[[ -n "$SECOND_DISK" ]] || read_colored "Do you want a second disk? (y/N): " SECOND_DISK
 case "${SECOND_DISK,,}" in
     y|yes) SECOND_DISK="yes" ;;
     *)     SECOND_DISK="no"; DISK2_SIZE="" ;;
