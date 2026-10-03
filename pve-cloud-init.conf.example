@@ -1,0 +1,10 @@
+# Copy to pve-cloud-init.conf (git-ignored) and edit. Values here are defaults;
+# command-line options override them.
+SNIPPET_STORAGE="local"          # must have the "snippets" content type enabled
+IMAGE_DIR="/var/lib/vz/template/iso"
+BRIDGE="vmbr0"
+VLAN=""                          # VLAN tag, e.g. 3; empty = untagged
+NAMESERVER="1.1.1.1 8.8.8.8"     # space separated
+SEARCHDOMAIN=""                   # default shown at the prompt, e.g. "example.com lab.example.com"
+TIMEZONE="America/New_York"
+SSH_KEYS_FILE="$HOME/.ssh/authorized_keys"   # one public key per line; leave empty for none

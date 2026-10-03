@@ -1,0 +1,21 @@
+#cloud-config
+# Vendor data merged with the Proxmox-generated user data. User, password,
+# SSH keys, hostname and network come from the native cloud-init drive.
+timezone: todo_timezone
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+packages:
+  - qemu-guest-agent
+  - ca-certificates
+  - chrony
+  - cifs-utils
+  - curl
+  - git
+  - gpg
+  - nfs-common
+  - tmux
+  - wget
+  - zsh
+runcmd:
+  - systemctl enable --now qemu-guest-agent

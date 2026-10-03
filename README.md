@@ -1,119 +1,40 @@
 # Proxmox Virtual Environment cloud-init
 
-This repo contains scripts to create VMs based on cloud-init templates. It does the following:
+Creates VMs from cloud images using Proxmox's **native cloud-init drive** (no ISO files).
 
-- Downloads the VM image if it doesn’t exist
-- It creates a cloud-init ISO based on the data information provided.
-- It creates a VM and attaches the cloud-init ISO.
+- Downloads the cloud image if it isn't cached (the cached image is never modified).
+- Imports the image as the VM disk and resizes the copy.
+- Configures user, hashed password, SSH keys, IP/gateway and DNS through the Proxmox cloud-init drive.
+- Attaches a small *vendor-data* snippet for timezone, packages and commands.
 
 ## Requirements
 
-- You must have `genisoimage` installed to generate an ISO file containing the cloud-init data. The cloud-init can be mounted as a CD when using a cloud image.
-- You must update **templ-user-data** with your own SSH keys and commands.
-- You must update **templ-network-config** with your own network information, leaving only `todo_ip` so it can be changed by the script.
+- Proxmox VE 8.1+ (uses `import-from`), run as root on the node.
+- `openssl` and `wget` (present on a default install).
+- A storage with the **Snippets** content type enabled (default: `local`). Enable it under *Datacenter > Storage*.
 
-## How to use
-
-1. Clone this repo in the ISO templates directory
-2. Modify **templ-user-data**
-    - `ssh_authorized_keys`
-    - `packages`
-    - `runcmd`
-3. Modify **templ-network-config**
-    - `via`: Change the default gateway
-    - `nameservers` \> `addresses`: Change to desired DNS servers
-    - `nameservers` \> `search`: Add if you use internal DNS
-4. Execute the shell script based on the VM image you want. Answer a few questions, and wait for the VM to be created.
-
-## Example usage
-
-Download git repo
-
-``` shell
-git clone https://github.com/roulette6/pve-cloud-init.git \
-    /var/lib/vz/template/iso/pve-cloud-init
-cd /var/lib/vz/template/iso/pve-cloud-init
-chmod +x *.sh
-```
-
-## Modify cloud-init files
-
-This only needs to be done once.
-
-## Change the user's password
-
-> [!NOTE]
-> You can opt to leave the default `changeme` password and change it via the VM's CLI.
-
-Create a hashed password
+## Setup (once)
 
 ```shell
-CINIT_PASSWD=$(openssl passwd -6 "your_password_here")
+git clone https://github.com/roulette6/pve-cloud-init.git /root/pve-cloud-init
+cd /root/pve-cloud-init
+cp pve-cloud-init.conf.example pve-cloud-init.conf
 ```
 
-Replace the hashed password in *templ-user-data*. Leave the leading space to avoid matching `lock_passwd:`.
+1. Edit **pve-cloud-init.conf**: DNS, search domain, timezone, bridge, and `SSH_KEYS_FILE` (a file with one public key per line).
+2. Edit **templ-vendor-data-debian** / **templ-vendor-data-rhel** for the packages and commands you want. `todo_timezone` is replaced by the script.
+
+User, password, SSH keys and network are *not* in the templates any more; Proxmox generates them from the VM's cloud-init settings.
+
+## Usage
+
+Anything not given on the command line is prompted for, including the password (hidden, entered twice; or set `CINIT_PASSWORD`). The password is hashed (SHA-512) before it is given to Proxmox.
+
+The DNS search domains are also prompted for (default from `SEARCHDOMAIN` in the config; type `none` for none, or use `--search-domain`). If `--storage` is missing or doesn't exist, the available storages are listed and you pick one by number.
+
+Valid distributions: `ubuntu` (26.04 LTS), `debian` (13), `alma` (10), `centos` (Stream 10), `fedora` (43).
 
 ```shell
-# delete comment about default password
-sed -i '/changeme/d' templ-user-data
-# replace the password hash
-sed -i "s| passwd: .*| passwd: ${CINIT_PASSWD}|" templ-user-data
-```
-
-### templ-user-data
-
-Save your authorized keys to a temporary file
-
-``` shell
-cat << EOF > ./authorized_keys.txt
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILIMt9pihqR99MAoguNURzuUn2EHY6TQ8tlq2XJDwDdC
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILt7jDru/vge2Ya47nGp69OyJ10T3KEx2ukGrj/M6hMi
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFsDzbTG1lav30UUInt9fW9/CIBGzodrKzP29ET5CJaK
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOOWBiuNbvSPbDEia4DJLgOt3Iwqvqj/OuEutTQO/hiN
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUyrWL8KBrk7u9nL1jEkhwuS0HgQ4MoUrW3dF1rOIR7
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe0Jot8YOAge5u8yhCrW9y8BZx3/9Iy8FDrV5NTHOu1
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTbS8MnRihYYduAfc79FMsNMjnYUTbb3xzm+8es6uIK
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINyLMd/Anlet3NNgC+CROaASE4qqXjAOegjmFWXrlciR
-EOF
-```
-
-Delete any potential ssh key entries that might already exist and insert the ones from the file after the `ssh_authorized_keys` section.
-
-``` shell
-sed -i '/- ssh-ed25519/d' templ-user-data
-sed -i '/ssh_authorized_keys/r ./authorized_keys.txt' templ-user-data
-```
-
-### templ-network-config
-
-Update the default gateway
-
-``` shell
-sed -i "s|via.*|via: 192.168.3.1|" templ-network-config
-```
-
-Modify the DNS servers as desired
-
-``` shell
-# delete private DNS server
-sed -i "/192.168.2.2/d" templ-network-config
-# swap Google DNS for Cloudflare DNS
-sed -i "s|8.8.8.8|1.1.1.1|" templ-network-config
-```
-
-Add your own DNS search zones if you’d like
-
-``` shell
-cat << EOF >> templ-network-config
-        search:
-          - example.com
-          - home.example.com
-EOF
-```
-
-Create a VM (You will be prompted for arguments you don't provide. Some have default values.). Valid distributions are: `ubuntu` (26.04 LTS), `debian` (13), `alma` (10), `centos` (Stream 10), and `fedora` (43).
-
-``` shell
 ./create-vm.sh \
   --distro debian \
   --storage crucial \
@@ -123,49 +44,18 @@ Create a VM (You will be prompted for arguments you don't provide. Some have def
   --cpu-cores 2 \
   --memory 6144 \
   --disk-size 30 \
-  --ip 192.168.1.149 \
+  --ip 192.168.1.149/24 \
+  --gateway 192.168.1.1 \
   --user john \
   --disk2-size 30
 ```
 
-Create a VM without a second disk
+Use `--second-disk no` to skip the second disk prompt. The second disk is attached but not partitioned or formatted.
 
-```shell
-./create-vm.sh \
-  --distro debian \
-  --storage crucial \
-  --id 149 \
-  --name test149 \
-  --cpu-type x86-64-v3 \
-  --cpu-cores 2 \
-  --memory 6144 \
-  --disk-size 30 \
-  --ip 192.168.1.149 \
-  --user john \
-  --second-disk no
-```
+If anything fails after the VM is created, the script destroys the partial VM and its snippet.
 
-## A note for clusters with HA
+## Clusters / HA
 
-> [!NOTE]
-> If you place your VM in local storage capable of replication and HA, such as a ZFS pool, you’ll want to do one of the following.
+Snippets on `local` are per node. For migration or HA, put snippets on shared storage (e.g. CephFS/NFS) and set `SNIPPET_STORAGE` accordingly, or copy `snippets/vendor-<id>.yaml` to every node. The cloud-init drive itself lives on the VM's storage and migrates with it.
 
-### Transfer the cloud-init ISO to the other nodes
-
-Ensure all nodes have the same cloud-init files in their local storage. This will ensure there are no errors if you migrate a VM from one node to the other.
-
-### Disable cloud-init on the VM
-
-When a VM created from a cloud image has been configured by a mounted cloud-init ISO, the ISO is required to remain mounted or the VM could lose some important configs. You can prevent this requirement by disabling cloud-init with the ISO still mounted. Once you’ve done this, you can safely remove the ISO from the VM and delete it. You can also delete the CD drive from the VM.
-
-``` shell
-# run this on the VM's CLI
-sudo touch /etc/cloud/cloud-init.disabled
-```
-
-If you instead need to make changes to the cloud-init ISO and reattach it so the VM can bootstrap itself again, run the command below, shut down the VM, attach the new ISO, and turn on the VM.
-
-``` shell
-# run this on the VM's CLI
-sudo cloud-init clean
-```
+To re-run cloud-init after changing settings: `qm cloudinit update <id>`, then `sudo cloud-init clean` inside the VM and reboot.
