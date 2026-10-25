@@ -39,6 +39,17 @@ die() {
     exit 1
 }
 
+# True if $1 is a dotted-quad IPv4 address with every octet 0-255
+valid_ipv4() {
+    local -a octets
+    local o
+    [[ "$1" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+    IFS=. read -ra octets <<< "$1"
+    for o in "${octets[@]}"; do
+        ((10#$o <= 255)) || return 1
+    done
+}
+
 read_colored() {
     local prompt="$1"
     local var_name="$2"
@@ -339,8 +350,8 @@ DISK2_SIZE="${DISK2_SIZE//[!0-9]/}"
 [[ "$VM_ID" =~ ^[0-9]+$ && "$VM_ID" -ge 100 ]] || die "VM ID must be a number >= 100"
 qm status "$VM_ID" > /dev/null 2>&1 && die "VM ID ${VM_ID} is already in use"
 [[ "$VM_NAME" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$ ]] || die "Invalid hostname '${VM_NAME}'"
-[[ "$VM_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$ ]] || die "Invalid IP address '${VM_IP}'"
-[[ "$GATEWAY" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || die "Invalid gateway '${GATEWAY}'"
+[[ "$VM_IP" =~ /([0-9]|[12][0-9]|3[0-2])$ ]] && valid_ipv4 "${VM_IP%%/*}" || die "Invalid IP address '${VM_IP}'"
+valid_ipv4 "$GATEWAY" || die "Invalid gateway '${GATEWAY}'"
 [[ -z "$VLAN" || ( "$VLAN" =~ ^[0-9]+$ && "$VLAN" -ge 1 && "$VLAN" -le 4094 ) ]] || die "Invalid VLAN ID '${VLAN}'"
 [[ -z "$SEARCHDOMAIN" || "$SEARCHDOMAIN" =~ ^[A-Za-z0-9.\ -]+$ ]] || die "Invalid search domains '${SEARCHDOMAIN}'"
 [[ "$CINIT_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || die "Invalid username '${CINIT_USER}'"

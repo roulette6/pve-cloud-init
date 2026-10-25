@@ -18,4 +18,9 @@ packages:
   - wget
   - zsh
 runcmd:
+  # Ubuntu 26.04's initramfs (dracut) leaves a catch-all DHCP .network file that
+  # brings the NIC up as ens18 before cloud-init runs, so the rename to eth0 in
+  # the static netplan config fails. Drop it and re-apply netplan.
+  - rm -f /run/systemd/network/zzzz-dracut-default.network
+  - netplan apply
   - systemctl enable --now qemu-guest-agent
