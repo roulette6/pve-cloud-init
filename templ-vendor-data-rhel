@@ -13,6 +13,7 @@ packages:
   - curl
   - git
   - gnupg2
+  - kernel-modules-extra
   - nfs-utils
   - tmux
   - wget
